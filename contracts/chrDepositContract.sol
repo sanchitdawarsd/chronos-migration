@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract chrDepositContract is Initializable, Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
-
-    address public owner;
-    IERC20 public chr;
+contract chrTokenDepositContract is Ownable, ReentrancyGuard {
+    using Math for uint256;
+    
+    IERC20 public chrToken;
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
     mapping(address => bool) public deposited; // Mapping from user address to either deposited or not
@@ -22,14 +20,8 @@ contract chrDepositContract is Initializable, Ownable, ReentrancyGuard {
     event Deposit(address indexed user, uint256 amount);
     event UserMappingUpdated(address indexed user, uint256 amount);
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the owner");
-        _;
-    }
-
-    function initialize(address _chr) public initializer {
-        __Ownable_init();
-        chr = IERC20(_chr);
+    constructor(address _chrToken) Ownable(msg.sender) {
+        chrToken = IERC20(_chrToken);
         deploymentTimestamp = block.timestamp;
     }
 
@@ -53,10 +45,10 @@ contract chrDepositContract is Initializable, Ownable, ReentrancyGuard {
         require(userBalances[msg.sender] >= amount, "exceeeds the user balance during snapshot");
 
         // Transfer venft tokens from the user to this contract
-        chr.transferFrom(msg.sender, address(this), amount);
+        chrToken.transferFrom(msg.sender, address(this), amount);
 
         // update the user balance
-        userBalances[msg.sender] = userBalances[msg.sender].sub(amount);
+        userBalances[msg.sender] -= amount;
 
         //check deposited
         deposited[msg.sender] = true;
@@ -72,7 +64,7 @@ contract chrDepositContract is Initializable, Ownable, ReentrancyGuard {
     }
 
     function withdraw(uint256 amount) external onlyOwner {
-        // Owner can withdraw chr tokens from the contract
-        chr.transfer(owner, tokenId);
+        // Owner can withdraw chrToken tokens from the contract
+        chrToken.transfer(owner(), amount);
     }
 }

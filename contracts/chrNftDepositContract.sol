@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -8,7 +8,6 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 
 contract chrNftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
-    address public owner;
     IERC721Upgradeable public chrNft;
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
@@ -22,13 +21,9 @@ contract chrNftDepositContract is Initializable, OwnableUpgradeable, ReentrancyG
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the owner");
-        _;
-    }
-
     function initialize(address _chrNft) public initializer {
-        __Ownable_init();
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
         chrNft = IERC721Upgradeable(_chrNft);
         deploymentTimestamp = block.timestamp;
     }
@@ -72,6 +67,6 @@ contract chrNftDepositContract is Initializable, OwnableUpgradeable, ReentrancyG
 
     function withdraw(uint256 tokenId) external onlyOwner {
         // Owner can withdraw venft tokens from the contract
-        chrNft.safeTransfer(owner, tokenId);
+        chrNft.safeTransferFrom(address(this), owner(), tokenId);
     }
 }

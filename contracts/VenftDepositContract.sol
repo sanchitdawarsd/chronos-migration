@@ -42,7 +42,7 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
         nftIdToAddress[tokenId] = userAddress;
         
         // deposited as false on initializing
-        deposited[tokenId][msg.sender] = false;
+        deposited[tokenId][userAddress] = false;
 
         // Emit an event or perform any other necessary actions
         emit UserMappingUpdated(userAddress, tokenId);
@@ -58,7 +58,7 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
         // Transfer venft tokens from the user to this contract
         venftToken.safeTransferFrom(msg.sender, address(this), tokenId);
 
-        //check if deposited
+        //check deposited
         deposited[tokenId][msg.sender] = true;
 
         // Emit deposit event

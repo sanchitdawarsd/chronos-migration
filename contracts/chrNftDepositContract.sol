@@ -3,12 +3,10 @@ pragma solidity ^0.8.0;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 contract chrNftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
-    using SafeMathUpgradeable for uint256;
 
     address public owner;
     IERC721Upgradeable public chrNft;
@@ -52,6 +50,7 @@ contract chrNftDepositContract is Initializable, OwnableUpgradeable, ReentrancyG
     function deposit(uint256 tokenId) external nonReentrant {
         // Ensure the user can deposit after the lock duration has passed
         require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(deposited[tokenId][msg.sender] == false,"Already Deposited");
 
         if(nftIdToAddress[tokenId] == msg.sender){ // since in data i can see after 5 dec some nfts have been moved to other addresses so restricting nft to be deposited from specific addresses as they were with the users of 5 dec 
        

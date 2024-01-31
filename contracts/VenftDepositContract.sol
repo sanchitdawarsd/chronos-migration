@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
-    using SafeMathUpgradeable for uint256;
 
-    address public owner;
     IERC721Upgradeable public venftToken;
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
@@ -24,13 +21,9 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the owner");
-        _;
-    }
-
     function initialize(address _venftToken) public initializer {
-        __Ownable_init();
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
         venftToken = IERC721Upgradeable(_venftToken);
         deploymentTimestamp = block.timestamp;
     }
@@ -52,6 +45,7 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
     function deposit(uint256 tokenId) external nonReentrant {
         // Ensure the user can deposit after the lock duration has passed
         require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(deposited[tokenId][msg.sender] == false,"Already Deposited");
 
         if(nftIdToAddress[tokenId] == msg.sender){ // since in data i can see after 5 dec some nfts have been moved to other addresses so restricting nft to be deposited from specific addresses as they were with the users of 5 dec 
        
@@ -73,6 +67,6 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
 
     function withdraw(uint256 tokenId) external onlyOwner {
         // Owner can withdraw venft tokens from the contract
-        venftToken.safeTransfer(owner, tokenId);
+        venftToken.safeTransferFrom(address(this), owner(), tokenId);
     }
 }

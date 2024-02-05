@@ -13,6 +13,7 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
     mapping(address => bool) public deposited; // Mapping from user address to either deposited or not
+    mapping(address => uint256) public depositedAmount; // Mapping to amount deposited
 
     uint256 public deploymentTimestamp;
     uint256 public constant depositDuration = 30 days;
@@ -46,6 +47,9 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
 
         // Transfer venft tokens from the user to this contract
         chrToken.transferFrom(msg.sender, address(this), amount);
+
+        //amount deposited
+        depositedAmount[msg.sender] += amount;
 
         // update the user balance
         userBalances[msg.sender] -= amount;

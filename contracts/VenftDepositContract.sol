@@ -5,10 +5,17 @@ import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC7
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     IERC721Upgradeable public venftToken;
+
+    // ERC-721 interface identifier
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+
+    // Event to log the token transfer
+    event ReceivedERC721(address operator, address from, uint256 tokenId, bytes data);
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
     mapping(uint256 => address) public nftIdToAddress; // Mapping from NFT ID to user address
@@ -28,7 +35,24 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
         deploymentTimestamp = block.timestamp;
     }
 
-        // Function to input mapping from user address to balance and Venft ID
+    // Implement the onERC721Received function
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external
+        override
+        returns (bytes4)
+    {
+        // You can add your custom logic here to handle the ERC-721 token transfer
+        // For example, you might want to mint a new token, update some state, or perform other actions.
+
+        // Emit an event to log the token transfer
+        emit ReceivedERC721(operator, from, tokenId, data);
+
+        // Return the ERC-721 interface identifier
+        return _ERC721_RECEIVED;
+
+    }    
+
+    // Function to input mapping from user address to balance and Venft ID
     function updateUserMapping(address userAddress,uint256 tokenId) external onlyOwner {
 
         // Update the mapping from NFT ID to user address
@@ -46,9 +70,8 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
         // Ensure the user can deposit after the lock duration has passed
         require(isWithinDepositPeriod(), "Deposit period has ended");
         require(deposited[tokenId][msg.sender] == false,"Already Deposited");
+        require(nftIdToAddress[tokenId] == msg.sender, "user not exist in snapshot");
 
-        if(nftIdToAddress[tokenId] == msg.sender){ // since in data i can see after 5 dec some nfts have been moved to other addresses so restricting nft to be deposited from specific addresses as they were with the users of 5 dec 
-       
         // Transfer venft tokens from the user to this contract
         venftToken.safeTransferFrom(msg.sender, address(this), tokenId);
 
@@ -57,7 +80,7 @@ contract VenftDepositContract is Initializable, OwnableUpgradeable, ReentrancyGu
 
         // Emit deposit event
         emit Deposit(msg.sender, tokenId);
-        }
+        
 
     }
 

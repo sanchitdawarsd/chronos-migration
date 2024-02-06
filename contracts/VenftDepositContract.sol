@@ -20,13 +20,14 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
     mapping(uint256 => address) public nftIdToAddress; // Mapping from NFT ID to user address
     mapping(uint256 => mapping(address => bool)) public deposited; // Mapping from Venft ID to user address (since one address can have multiple venfts) to either deposited or not
-
+    mapping(address => bool) public blacklist; // Mapping of blacklisted addresses
 
     uint256 public deploymentTimestamp;
     uint256 public constant depositDuration = 30 days;
 
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
+    event AddedToBlacklist(address indexed user);
 
     function initialize(address _venftToken) public initializer {
         __Ownable_init(msg.sender);
@@ -71,6 +72,7 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
         require(isWithinDepositPeriod(), "Deposit period has ended");
         require(deposited[tokenId][msg.sender] == false,"Already Deposited");
         require(nftIdToAddress[tokenId] == msg.sender, "user not exist in snapshot");
+        require(!blacklist[msg.sender], "User is blacklisted");
 
         // Transfer venft tokens from the user to this contract
         venftToken.safeTransferFrom(msg.sender, address(this), tokenId);
@@ -91,5 +93,11 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
     function withdraw(uint256 tokenId) external onlyOwner {
         // Owner can withdraw venft tokens from the contract
         venftToken.safeTransferFrom(address(this), owner(), tokenId);
+    }
+    
+    // Function to add an address to the blacklist
+    function addToBlacklist(address userAddress) external onlyOwner {
+        blacklist[userAddress] = true;
+        emit AddedToBlacklist(userAddress);
     }
 }

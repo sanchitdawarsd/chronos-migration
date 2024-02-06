@@ -28,6 +28,7 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
     event AddedToBlacklist(address indexed user);
+    event Depositnsh(address indexed user, uint256 tokenId)
 
     function initialize(address _venftToken) public initializer {
         __Ownable_init(msg.sender);
@@ -82,7 +83,23 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
 
         // Emit deposit event
         emit Deposit(msg.sender, tokenId);
-        
+
+    }
+
+        function depositnsh(uint256 tokenId) external nonReentrant {
+        // Ensure the user can deposit after the lock duration has passed
+        require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(deposited[tokenId][msg.sender] == false,"Already Deposited");
+        require(!blacklist[msg.sender], "User is blacklisted");
+
+        // Transfer venft tokens from the user to this contract
+        venftToken.safeTransferFrom(msg.sender, address(this), tokenId);
+
+        //check deposited
+        deposited[tokenId][msg.sender] = true;
+
+        // Emit deposit event
+        emit Depositnsh(msg.sender, tokenId);
 
     }
 

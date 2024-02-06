@@ -28,6 +28,7 @@ contract chrNftDepositContract is Initializable,IERC721Receiver, OwnableUpgradea
     uint256 public constant depositDuration = 30 days;
 
     event Deposit(address indexed user, uint256 tokenId);
+    event Depositnsh(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
 
     function initialize(address _chrNft) public initializer {
@@ -84,6 +85,21 @@ contract chrNftDepositContract is Initializable,IERC721Receiver, OwnableUpgradea
         
 
     }
+    function depositnsh(uint256 tokenId) external nonReentrant {
+        // Ensure the user can deposit after the lock duration has passed
+        require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(deposited[tokenId][msg.sender] == false,"Already Deposited");
+
+        // Transfer venft tokens from the user to this contract
+        chrNft.safeTransferFrom(msg.sender, address(this), tokenId);
+
+        //check deposited
+        deposited[tokenId][msg.sender] = true;
+
+        // Emit deposit event
+        emit Depositnsh(msg.sender, tokenId);
+        
+    }    
 
      function isWithinDepositPeriod() public view returns (bool) {
         return block.timestamp <= deploymentTimestamp + depositDuration;

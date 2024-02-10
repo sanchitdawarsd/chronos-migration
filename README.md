@@ -1,53 +1,40 @@
-# Chronos Migration
+## Contract Initialization: 
 
-## VECHR Migratration Info
-Contract Imports:
+The contract uses the Initializable contract from OpenZeppelin for initialization. It sets up initial parameters such as the Venly NFT token contract address and deployment timestamp. The contract also inherits from OwnableUpgradeable and ReentrancyGuardUpgradeable.
 
-The contract imports interfaces and libraries from OpenZeppelin for ERC721, Ownable, SafeMath, Initializable, and ReentrancyGuard functionalities.
+## Event: 
 
-### Contract State Variables:
+The contract defines an event ReceivedERC721 to log token transfers.
+UserMappingUpdated - adding user of snapshots.
+AddedToBlacklist - when a user is added to blacklist.
+Deposit -  this event is emitted when a user deposits a Venly NFT token into the contract with snapshot one.
+Depositnsh -  this event is emitted when a user deposits a  veNFT token into the contract without snapshot one.
 
-owner: An address variable representing the owner of the contract.
-venftToken: An ERC721 contract interface representing the Venft token.
-userBalances: A mapping from user addresses to their balances.
-nftIdToAddress: A mapping from NFT IDs to user addresses.
-deposited: A mapping from Venft ID to user address to track whether an NFT has been deposited.
-deploymentTimestamp: Records the timestamp of contract deployment.
-depositDuration: A constant representing the duration during which deposits are allowed.
+## Mappings:
 
-### Events:
+userBalances: Maps user addresses to their balances.
+nftIdToAddress: Maps NFT IDs to user addresses.
+deposited: Maps Venft IDs to user addresses to track whether an NFT has been deposited or not.
+blacklist: Maintains a list of blacklisted addresses.
 
-Deposit: Triggered when a user deposits an NFT.
-UserMappingUpdated: Triggered when the user-to-NFT mapping is updated.
+## Functions:
 
-### Modifiers:
+initialize: Initializes the contract with the Venly NFT token contract address.
 
-onlyOwner: Ensures that only the owner can execute certain functions.
+onERC721Received: Implements the onERC721Received function required by the ERC-721 standard. This function is called when an ERC-721 token is received.
 
-### Initializer Function:
+updateUserMapping: Allows the contract owner to update the mapping from user addresses to balances and Venft IDs.
 
-The initialize function initializes the contract with the Venft token address and sets the deployment timestamp.
+deposit: Allows users to deposit Venly NFT tokens into the contract within a specified duration. It checks various conditions such as whether the deposit period is ongoing, whether the user has already deposited the token, and whether the user is blacklisted.
 
-### Function updateUserMapping:
+depositnsh: Similar to deposit function but without the requirement of the user owning the NFT beforehand in snapshot.
 
-Only callable by the owner.
-Updates the mapping from NFT ID to user address.
-Sets the deposited status to false.
-Emits an event to notify the mapping update.
+isWithinDepositPeriod: Checks whether the current block timestamp is within the specified deposit duration.
 
-### Function deposit:
+withdraw: Allows the owner to withdraw Venly NFT tokens from the contract.
+addToBlacklist: Allows the contract owner to add addresses to the blacklist, preventing them from depositing tokens.
 
-Only callable within the deposit period.
-Checks if the sender is the owner of the NFT.
-Transfers the NFT to the contract.
-Marks the NFT as deposited for the user.
-Emits a deposit event.
+## Modifiers:
 
-### Function isWithinDepositPeriod:
-
-Checks if the current timestamp is within the deposit period.
-
-### Function withdraw:
-
-Only callable by the owner.
-Allows the owner to withdraw Venft tokens.
+onlyOwner: Restricts access to certain functions to only the contract owner.
+nonReentrant: Prevents reentrancy attacks by restricting reentrant calls to functions guarded by this modifier.

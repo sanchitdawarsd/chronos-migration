@@ -28,7 +28,7 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
     event AddedToBlacklist(address indexed user);
-    event Depositnsh(address indexed user, uint256 tokenId)
+    event Depositnsh(address indexed user, uint256 tokenId);
 
     function initialize(address _venftToken) public initializer {
         __Ownable_init(msg.sender);

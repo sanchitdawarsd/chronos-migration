@@ -21,6 +21,8 @@ contract chrNftDepositContract is Initializable,IERC721Receiver, OwnableUpgradea
 
     mapping(address => uint256) public userBalances; // Mapping from user address to balance
     mapping(uint256 => address) public nftIdToAddress; // Mapping from NFT ID to user address
+    mapping(address => uint256[]) public addressToNftIds; // Mapping from NFT ID to user address
+    mapping(address => uint256) public totalids; // Mapping from NFT ID to user address
     mapping(uint256 => mapping(address => bool)) public deposited; // Mapping from Venft ID to user address (since one address can have multiple venfts) to either deposited or not
 
 
@@ -54,17 +56,25 @@ contract chrNftDepositContract is Initializable,IERC721Receiver, OwnableUpgradea
         return _ERC721_RECEIVED;
     }
 
-        // Function to input mapping from user address to balance and Venft ID
-    function updateUserMapping(address userAddress,uint256 tokenId) external onlyOwner {
+    // Function to input mapping from user address to balance and Venft ID
+    function updateUserMapping(address[] memory userAddresses, uint256[] memory tokenIds) external onlyOwner {
+        require(userAddresses.length == tokenIds.length, "Arrays length mismatch");
 
-        // Update the mapping from NFT ID to user address
-        nftIdToAddress[tokenId] = userAddress;
+          for (uint256 i = 0; i < userAddresses.length; i++) {
+
+            // Update the mapping from NFT ID to user address
+            nftIdToAddress[tokenIds[i]] = userAddresses[i];
+
+            addressToNftIds[userAddresses[i]].push(tokenIds[i]);
+
+            totalids[userAddresses[i]]= totalids[userAddresses[i]]+1;
         
-        // deposited as false on initializing
-        deposited[tokenId][userAddress] = false;
+            // deposited as false on initializing
+            deposited[tokenIds[i]][userAddresses[i]] = false;
 
-        // Emit an event or perform any other necessary actions
-        emit UserMappingUpdated(userAddress, tokenId);
+            // Emit an event or perform any other necessary actions
+            emit UserMappingUpdated(userAddresses[i], tokenIds[i]);
+    }
     }
 
       

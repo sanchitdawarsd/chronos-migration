@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract chrTokenDepositContract is Ownable, ReentrancyGuard {
-    using Math for uint256;
+    using SafeMath for uint256;
     
     IERC20 public chrToken;
 
@@ -53,13 +53,13 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
         chrToken.transferFrom(msg.sender, address(this), amount);
 
         //amount deposited
-        depositedAmount[msg.sender] += amount;
+        depositedAmount[msg.sender] = depositedAmount[msg.sender].add(amount);
 
         // push user to list
         userList.push(msg.sender);
 
         // update the user balance
-        userBalances[msg.sender] -= amount;
+        userBalances[msg.sender] = userBalances[msg.sender].sub(amount);
 
         // Emit deposit event
         emit Deposit(msg.sender, amount);  
@@ -74,7 +74,7 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
         chrToken.transferFrom(msg.sender, address(this), amount);
 
         //amount deposited
-        depositedAmountnsh[msg.sender] += amount;
+        depositedAmountnsh[msg.sender] = depositedAmountnsh[msg.sender].add(amount);
 
         // push user to list
         userList.push(msg.sender);

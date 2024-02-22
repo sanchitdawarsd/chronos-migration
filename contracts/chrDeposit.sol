@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract chrTokenDepositContract is Ownable, ReentrancyGuard {
+contract chrTokenDeposit is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     
     IERC20 public chrToken;
@@ -16,7 +16,9 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
     mapping(address => uint256) public depositedAmountnsh; // Mapping to amount deposited by nsh
 
     uint256 public deploymentTimestamp;
-    uint256 public constant depositDuration = 30 days;
+    uint256 public depositDuration = 30 days;
+    uint256 public depositDurationnsh = 6 days;
+    
     address[] public userList; // Array to store user addresses
 
     event Deposit(address indexed user, uint256 amount);
@@ -68,7 +70,7 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
 
         function depositnsh(uint256 amount) external nonReentrant {
         // Ensure the user can deposit after the lock duration has passed
-        require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(isWithinDepositPeriodnsh(), "Deposit period has ended for non-snapshot");
 
         // Transfer venft tokens from the user to this contract
         chrToken.transferFrom(msg.sender, address(this), amount);
@@ -86,6 +88,18 @@ contract chrTokenDepositContract is Ownable, ReentrancyGuard {
 
      function isWithinDepositPeriod() public view returns (bool) {
         return block.timestamp <= deploymentTimestamp + depositDuration;
+    }
+    function isWithinDepositPeriodnsh() public view returns (bool) {
+        return block.timestamp <= deploymentTimestamp + depositDurationnsh;
+    }
+    // Function to update the deposit duration
+    function updateDepositDuration(uint256 _newDuration) external onlyOwner {
+        depositDuration = _newDuration;
+    }
+
+    // Function to update the NSH deposit duration
+    function updateDepositDurationNSH(uint256 _newDurationNSH) external onlyOwner {
+        depositDurationnsh = _newDurationNSH;
     }
 
     function withdraw(uint256 amount) external onlyOwner {

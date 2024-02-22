@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract veChrDeposit is Initializable,IERC721Receiver, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     IERC721Upgradeable public venftToken;
 
@@ -25,7 +25,8 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
     mapping(address => bool) public blacklist; // Mapping of blacklisted addresses
 
     uint256 public deploymentTimestamp;
-    uint256 public constant depositDuration = 30 days;
+    uint256 public depositDuration = 30 days;
+    uint256 public depositDurationnsh = 6 days;
 
     event Deposit(address indexed user, uint256 tokenId);
     event UserMappingUpdated(address indexed user, uint256 tokenId);
@@ -98,7 +99,7 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
 
         function depositnsh(uint256 tokenId) external nonReentrant {
         // Ensure the user can deposit after the lock duration has passed
-        require(isWithinDepositPeriod(), "Deposit period has ended");
+        require(isWithinDepositPeriodnsh(), "Deposit period has ended");
         require(deposited[tokenId][msg.sender] == false,"Already Deposited");
         require(!blacklist[msg.sender], "User is blacklisted");
 
@@ -116,10 +117,21 @@ contract VenftDepositContract is Initializable,IERC721Receiver, OwnableUpgradeab
      function isWithinDepositPeriod() public view returns (bool) {
         return block.timestamp <= deploymentTimestamp + depositDuration;
     }
-
+     function isWithinDepositPeriodnsh() public view returns (bool) {
+        return block.timestamp <= deploymentTimestamp + depositDurationnsh;
+    }
     function withdraw(uint256 tokenId) external onlyOwner {
         // Owner can withdraw venft tokens from the contract
         venftToken.safeTransferFrom(address(this), owner(), tokenId);
+    }
+    // Function to update the deposit duration
+    function updateDepositDuration(uint256 _newDuration) external onlyOwner {
+        depositDuration = _newDuration;
+    }
+
+    // Function to update the NSH deposit duration
+    function updateDepositDurationNSH(uint256 _newDurationNSH) external onlyOwner {
+        depositDurationnsh = _newDurationNSH;
     }
     
     // Function to add an address to the blacklist

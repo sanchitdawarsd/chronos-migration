@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract elChrDepositContract is Ownable, ReentrancyGuard {
+contract elChrDeposit is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     
     IERC20 public elChrToken;
@@ -15,7 +15,7 @@ contract elChrDepositContract is Ownable, ReentrancyGuard {
     mapping(address => uint256) public depositedAmount; // Mapping to amount deposited
 
     uint256 public deploymentTimestamp;
-    uint256 public constant depositDuration = 30 days;
+    uint256 public  depositDuration = 30 days;
     address[] public userList; // Array to store user addresses
 
     event Deposit(address indexed user, uint256 amount);
@@ -62,6 +62,11 @@ contract elChrDepositContract is Ownable, ReentrancyGuard {
      function isWithinDepositPeriod() public view returns (bool) {
         return block.timestamp <= deploymentTimestamp + depositDuration;
     }
+            // Function to update the deposit duration
+    function updateDepositDuration(uint256 _newDuration) external onlyOwner {
+        depositDuration = _newDuration;
+    }
+
 
     function withdraw(uint256 amount) external onlyOwner {
         // Owner can withdraw elChrToken tokens from the contract

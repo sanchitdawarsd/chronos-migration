@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract spChrDepositContract is Ownable, ReentrancyGuard {
+contract spChrDeposit is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     
     IERC20 public spChrToken;
